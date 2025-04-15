@@ -9,4 +9,4 @@
 #pragma comment(lib, "winhttp.lib")
 
 
-boolean c2_handler(std::vector<BYTE>& outputData, const std::vector<BYTE>& inputData);
+boolean c2_handler(std::vector<BYTE>& key, const std::vector<BYTE>& inputData_1);

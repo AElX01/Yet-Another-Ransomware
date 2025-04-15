@@ -5,6 +5,7 @@
 #include <ntstatus.h>
 #include <bcrypt.h>
 #include <vector>
+#include <shlobj.h>
 
 #include "crypto.h"
 #include "sysOperations.h"

