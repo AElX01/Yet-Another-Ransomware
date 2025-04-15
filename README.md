@@ -16,5 +16,6 @@ A C++ ransomware that targets Windows systems using the CNG (Cryptography API: N
 
 ## issues
 
-- Lack of a gui to ask for the token, if the user closes the terminal, the program will terminate and files will remain encrypted
-- Lack of advanced AV evasion techniques, still in early development stage
+- Lacks a gui to ask for the token, if the user closes the terminal, the program will terminate and files will remain encrypted
+- Lacks advanced AV evasion techniques
+- Lacks persistence after reboot
